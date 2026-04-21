@@ -10,6 +10,7 @@
 	<version>1.0</version>
 	<name>SMP Reconnect</name>
 	<description>Automatic reconnection for Velocity proxy servers.</description>
+	<url>https://github.com/ajdnikov/SMPReconnect</url>
 
 	<developers>
 		<developer>
