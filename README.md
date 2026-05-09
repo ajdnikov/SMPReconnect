@@ -22,3 +22,4 @@
 **GitHub:** [Ajdnikov/SMPReconnect](https://github.com/ajdnikov/SMPReconnect)
 **License:** [MIT](LICENSE)
 **Disclaimer:** [Read here](DISCLAIMER.md)
+**Discord:** [Join](https://discord.com/invite/xyjmcjMp4W)
