@@ -26,6 +26,10 @@ public class ConfigManager {
     private int messageIntervalSeconds;
     private String reconnectingMessage;
 
+    // Whitelist settings
+    private boolean whitelistEnabled;
+    private final java.util.Set<String> whitelistedPlayers = new java.util.HashSet<>();
+
     public ConfigManager(Path dataDirectory, Logger logger) {
         this.dataDirectory = dataDirectory;
         this.logger = logger;
@@ -76,6 +80,12 @@ public class ConfigManager {
                         .set("§aThe server is still starting up! You will be connected shortly...");
                 rootNode.node("reconnecting_message").comment("The periodic message sent to waiting players.");
 
+                // Whitelist
+                rootNode.node("whitelist", "enabled").set(false);
+                rootNode.node("whitelist", "enabled").comment("Whether the command forwarder whitelist is enabled.");
+                rootNode.node("whitelist", "players").setList(String.class, Arrays.asList("Notch", "Dinnerbone"));
+                rootNode.node("whitelist", "players").comment("Players allowed to use the /vforward command.");
+
                 loader.save(rootNode);
                 logger.info("Generated default config.yml!");
             } else {
@@ -105,6 +115,15 @@ public class ConfigManager {
             reconnectingMessage = rootNode.node("reconnecting_message")
                     .getString("§aThe server is still starting up! You will be connected shortly...");
 
+            whitelistEnabled = rootNode.node("whitelist", "enabled").getBoolean(false);
+            whitelistedPlayers.clear();
+            List<String> players = rootNode.node("whitelist", "players").getList(String.class);
+            if (players != null) {
+                for (String p : players) {
+                    whitelistedPlayers.add(p.toLowerCase());
+                }
+            }
+
             return true;
         } catch (ConfigurateException e) {
             logger.error("Could not load config.yml", e);
@@ -130,5 +149,45 @@ public class ConfigManager {
 
     public String getReconnectingMessage() {
         return reconnectingMessage;
+    }
+
+    public boolean isWhitelistEnabled() {
+        return whitelistEnabled;
+    }
+
+    public boolean isWhitelisted(String username) {
+        return whitelistedPlayers.contains(username.toLowerCase());
+    }
+
+    public java.util.Set<String> getWhitelistedPlayers() {
+        return java.util.Collections.unmodifiableSet(whitelistedPlayers);
+    }
+
+    public boolean addWhitelistedPlayer(String username) {
+        if (whitelistedPlayers.add(username.toLowerCase())) {
+            saveWhitelist();
+            return true;
+        }
+        return false;
+    }
+
+    public boolean removeWhitelistedPlayer(String username) {
+        if (whitelistedPlayers.remove(username.toLowerCase())) {
+            saveWhitelist();
+            return true;
+        }
+        return false;
+    }
+
+    private void saveWhitelist() {
+        try {
+            Path configFile = dataDirectory.resolve("config.yml");
+            YamlConfigurationLoader loader = YamlConfigurationLoader.builder().path(configFile).build();
+            CommentedConfigurationNode root = loader.load();
+            root.node("whitelist", "players").setList(String.class, new java.util.ArrayList<>(whitelistedPlayers));
+            loader.save(root);
+        } catch (ConfigurateException e) {
+            logger.error("Could not save whitelist to config.yml", e);
+        }
     }
 }

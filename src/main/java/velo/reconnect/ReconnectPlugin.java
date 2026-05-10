@@ -83,6 +83,16 @@ public class ReconnectPlugin {
                 server.getCommandManager().metaBuilder("reconnectreload").build(),
                 new ReloadCommand());
 
+        // Register vforward command
+        server.getCommandManager().register(
+                server.getCommandManager().metaBuilder("vforward").build(),
+                new ForwardCommand(server, configManager));
+
+        // Register reconnect command for whitelist and other subcommands
+        server.getCommandManager().register(
+                server.getCommandManager().metaBuilder("reconnect").build(),
+                new ReconnectCommand());
+
         startPingerTask();
         startMessageTask();
 
@@ -335,6 +345,62 @@ public class ReconnectPlugin {
                 logger.info("Config reloaded by " + (invocation.source() instanceof Player ? ((Player) invocation.source()).getUsername() : "Console"));
             } else {
                 invocation.source().sendMessage(Component.text("Failed to reload SMP-Reconnect config! Check console for errors.", NamedTextColor.RED));
+            }
+        }
+    }
+
+    // Command handler for the /reconnect base command
+    private class ReconnectCommand implements SimpleCommand {
+        @Override
+        public void execute(Invocation invocation) {
+            com.velocitypowered.api.command.CommandSource source = invocation.source();
+            if (!source.hasPermission("smpreconnect.admin")) {
+                source.sendMessage(Component.text("You do not have permission to use this command.", NamedTextColor.RED));
+                return;
+            }
+
+            String[] args = invocation.arguments();
+            if (args.length == 0) {
+                source.sendMessage(Component.text("Usage: /reconnect whitelist <add/remove/list> [name]", NamedTextColor.RED));
+                return;
+            }
+
+            if (args[0].equalsIgnoreCase("whitelist")) {
+                if (args.length == 1) {
+                    source.sendMessage(Component.text("Usage: /reconnect whitelist <add/remove/list> [name]", NamedTextColor.RED));
+                    return;
+                }
+
+                String action = args[1].toLowerCase();
+                if (action.equals("list")) {
+                    java.util.Set<String> players = configManager.getWhitelistedPlayers();
+                    source.sendMessage(Component.text("Whitelisted Players: " + String.join(", ", players), NamedTextColor.GREEN));
+                    return;
+                }
+
+                if (args.length < 3) {
+                    source.sendMessage(Component.text("Usage: /reconnect whitelist " + action + " <name>", NamedTextColor.RED));
+                    return;
+                }
+
+                String targetName = args[2];
+                if (action.equals("add")) {
+                    if (configManager.addWhitelistedPlayer(targetName)) {
+                        source.sendMessage(Component.text("Added " + targetName + " to the command whitelist.", NamedTextColor.GREEN));
+                    } else {
+                        source.sendMessage(Component.text(targetName + " is already whitelisted.", NamedTextColor.YELLOW));
+                    }
+                } else if (action.equals("remove")) {
+                    if (configManager.removeWhitelistedPlayer(targetName)) {
+                        source.sendMessage(Component.text("Removed " + targetName + " from the command whitelist.", NamedTextColor.GREEN));
+                    } else {
+                        source.sendMessage(Component.text(targetName + " is not whitelisted.", NamedTextColor.YELLOW));
+                    }
+                } else {
+                    source.sendMessage(Component.text("Unknown whitelist action: " + action, NamedTextColor.RED));
+                }
+            } else {
+                source.sendMessage(Component.text("Unknown subcommand. Usage: /reconnect whitelist <add/remove/list> [name]", NamedTextColor.RED));
             }
         }
     }

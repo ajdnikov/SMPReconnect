@@ -7,7 +7,7 @@
 
 	<groupId>velo.reconnect</groupId>
 	<artifactId>reconnectanzi</artifactId>
-	<version>1.0</version>
+	<version>1.1</version>
 	<name>SMP Reconnect</name>
 	<description>Automatic reconnection for Velocity proxy servers.</description>
 	<url>https://github.com/ajdnikov/SMPReconnect</url>
