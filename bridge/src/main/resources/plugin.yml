@@ -1,0 +1,5 @@
+name: SMPReconnectBridge
+version: '1.0.0'
+main: velo.reconnect.bridge.SMPReconnectBridge
+api-version: '1.13'
+description: Bridge plugin for SMP-Reconnect to receive forwarded commands from Velocity.
